@@ -54,7 +54,7 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
     );
     cardAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 400),
     );
     viewAnimationController = AnimationController(
       vsync: this,
@@ -119,7 +119,7 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
           setState(() {});
           cardAnimationController.reset();
           viewAnimationController.reset();
-          viewAnimationController.forward();
+          await viewAnimationController.forward();
         } else {
           if (viewImages.length == 1) {
             initialAnimationController.reset();
