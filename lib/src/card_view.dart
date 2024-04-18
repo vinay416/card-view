@@ -58,7 +58,7 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
     );
     viewAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 150),
     );
     initialAnimation = Tween<double>(begin: 0, end: 20).animate(
       CurvedAnimation(
@@ -116,6 +116,7 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
           final data = cardImages.removeAt(0);
           viewImages.add(data);
           currentIndex = currentIndex + 1;
+          setState(() {});
           cardAnimationController.reset();
           viewAnimationController.reset();
           viewAnimationController.forward();
@@ -131,11 +132,11 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
           final topViewIndex = viewImages.length - 1;
           final data = viewImages.removeAt(topViewIndex);
           cardImages.insert(0, data);
+          setState(() {});
+          cardAnimationController.forward(from: 1.0);
           await cardAnimationController.reverse();
           cardAnimationController.reset();
         }
-
-        setState(() {});
       },
       child: SafeArea(
         child: Stack(
