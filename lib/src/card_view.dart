@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -37,34 +35,58 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
   @override
   void initState() {
     setInitialData();
-    setupAnimation();
+    setupAnimations();
     super.initState();
   }
 
   void setInitialData() {
     allImages = widget.images;
     viewImages = [allImages[0]];
+    // image from index 1 of allImages
     cardImages = [...allImages]..removeAt(0);
   }
 
-  void setupAnimation() {
+  void setupAnimations() {
+    setupInitialAnimation();
+    setupViewAnimation();
+    setupCardAnimation();
+    Future.microtask(() {
+      initialAnimationController.forward();
+      viewAnimationController.forward();
+    });
+  }
+
+  void setupInitialAnimation() {
     initialAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
-    );
-    cardAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    viewAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
     );
     initialAnimation = Tween<double>(begin: 0, end: 20).animate(
       CurvedAnimation(
         parent: initialAnimationController,
         curve: Curves.decelerate,
       ),
+    );
+  }
+
+  void setupViewAnimation() {
+    viewAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
+    viewChangeAnimation = Tween<double>(begin: 0.4, end: 1).animate(
+      CurvedAnimation(
+        parent: viewAnimationController,
+        curve: Curves.easeIn,
+        reverseCurve: Curves.easeOut,
+      ),
+    );
+  }
+
+  void setupCardAnimation() {
+    cardAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
     );
     cardTranslateAnimation = Tween<double>(begin: 0, end: 50).animate(
       CurvedAnimation(
@@ -90,58 +112,16 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
         curve: const Interval(0.8, 1),
       ),
     );
-    viewChangeAnimation = Tween<double>(begin: 0.4, end: 1).animate(
-      CurvedAnimation(
-        parent: viewAnimationController,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut,
-      ),
-    );
-    Future.microtask(() {
-      initialAnimationController.forward();
-      viewAnimationController.forward();
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onHorizontalDragEnd: (details) async {
-        final dx = details.primaryVelocity ?? 0;
-        final leftSwipe = dx < 0;
-
-        if (leftSwipe) {
-          if (cardImages.isEmpty) return;
-          await cardAnimationController.forward();
-          final data = cardImages.removeAt(0);
-          viewImages.add(data);
-          currentIndex = currentIndex + 1;
-          setState(() {});
-          cardAnimationController.reset();
-          viewAnimationController.reset();
-          await viewAnimationController.forward();
-        } else {
-          if (viewImages.length == 1) {
-            initialAnimationController.reset();
-            initialAnimationController.forward();
-            return;
-          }
-          await viewAnimationController.reverse();
-          currentIndex = currentIndex - 1;
-          viewAnimationController.forward(from: 1.0);
-          final topViewIndex = viewImages.length - 1;
-          final data = viewImages.removeAt(topViewIndex);
-          cardImages.insert(0, data);
-          setState(() {});
-          cardAnimationController.forward(from: 1.0);
-          await cardAnimationController.reverse();
-          cardAnimationController.reset();
-        }
-      },
+      onHorizontalDragEnd: onSwipeGesture,
       child: SafeArea(
         child: Stack(
           children: [
-            for (int i = 0; i < viewImages.length; i++) fullView(i),
+            ...mainView(),
             Positioned(
               height: 200,
               width: 300,
@@ -153,6 +133,49 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  void onSwipeGesture(details) async {
+    final dx = details.primaryVelocity ?? 0;
+    final leftSwipe = dx < 0;
+
+    if (leftSwipe) {
+      if (cardImages.isEmpty) return;
+      await cardAnimationController.forward();
+      final data = cardImages.removeAt(0);
+      viewImages.add(data);
+      currentIndex = currentIndex + 1;
+      setState(() {});
+      cardAnimationController.reset();
+      viewAnimationController.reset();
+      await viewAnimationController.forward();
+    } else {
+      if (viewImages.length == 1) {
+        initialAnimationController.reset();
+        initialAnimationController.forward();
+        return;
+      }
+      await viewAnimationController.reverse();
+      currentIndex = currentIndex - 1;
+      viewAnimationController.forward(from: 1.0);
+      final topViewIndex = viewImages.length - 1;
+      final data = viewImages.removeAt(topViewIndex);
+      cardImages.insert(0, data);
+      setState(() {});
+      cardAnimationController.forward(from: 1.0);
+      await cardAnimationController.reverse();
+      cardAnimationController.reset();
+    }
+  }
+
+  List<Widget> mainView() {
+    final bool moreItems = viewImages.length >= 2;
+    final int initial = (moreItems ? viewImages.length - 2 : 0);
+    List<Widget> widgets = [];
+    for (int i = initial; i < viewImages.length; i++) {
+      widgets.add(fullView(i));
+    }
+    return widgets;
   }
 
   Widget fullView(int index) {
@@ -210,6 +233,7 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
           final rightInitial = initialAnimation.value * pos;
           final scaleCard =
               cardScaleUpAnimation.value - cardScaleDownAnimation.value;
+
           return Positioned(
             right: rightInitial + cardTranslateAnimation.value,
             child: Opacity(
@@ -252,6 +276,7 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
   void dispose() {
     initialAnimationController.dispose();
     cardAnimationController.dispose();
+    viewAnimationController.dispose();
     super.dispose();
   }
 }
