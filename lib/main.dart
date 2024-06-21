@@ -4,10 +4,9 @@ import 'package:flutter/services.dart';
 
 void main(List<String> args) {
   WidgetsFlutterBinding.ensureInitialized();
-  // SystemChrome.setPreferredOrientations([
-  //     DeviceOrientation.landscapeRight,
-  //     DeviceOrientation.landscapeLeft,
-  // ]);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+  ));
   runApp(const MyApp());
 }
 
@@ -23,7 +22,7 @@ class MyApp extends StatelessWidget {
           primary: Colors.white,
         ),
       ),
-      home: Example(),
+      home: const Example(),
     );
   }
 }

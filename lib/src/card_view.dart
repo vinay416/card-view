@@ -118,19 +118,17 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return GestureDetector(
       onHorizontalDragEnd: onSwipeGesture,
-      child: SafeArea(
-        child: Stack(
-          children: [
-            ...mainView(),
-            Positioned(
-              height: 200,
-              width: 300,
-              bottom: 0,
-              right: 10,
-              child: smallPreviewCard(),
-            )
-          ],
-        ),
+      child: Stack(
+        children: [
+          ...mainView(),
+          Positioned(
+            height: 200,
+            width: 300,
+            bottom: 0,
+            right: 10,
+            child: smallPreviewCard(),
+          )
+        ],
       ),
     );
   }
@@ -192,6 +190,7 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
               child: CachedNetworkImage(
                 imageUrl: viewImages[index],
                 fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
               ),
             ),
           );
