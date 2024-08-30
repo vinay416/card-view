@@ -1,0 +1,16 @@
+flutter_native_splash:
+  android: true
+  ios: true
+  web: false
+  fullscreen: false
+
+  color: "#ffffff"
+  image: assets/card-view.png
+  color_dark: "#121212"
+  image_dark: assets/card-view.png
+
+  android_12:
+    image: assets/card-view.png
+    icon_background_color: "#ffffff"
+    image_dark: assets/card-view.png
+    icon_background_color_dark: "#121212"
